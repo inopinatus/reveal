@@ -1,0 +1,26 @@
+# Build artifacts
+/.build
+/Package.resolved
+reveal
+
+# Xcode files
+xcuserdata/
+*.xcworkspace
+*.xcodeproj
+
+# macOS files
+.DS_Store
+
+# Swift Package Manager
+.build/
+
+# Generated files
+*.swiftpm
+
+# Carthage
+Carthage/
+*.framework
+
+# CocoaPods
+Pods/
+Podfile.lock

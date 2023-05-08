@@ -1,0 +1,54 @@
+.\" Manpage for reveal
+.\" MIT License
+.TH REVEAL 1 "08 May 2023" "inopinatus" "Reveal User Manual"
+.SH NAME
+reveal \- Reveal selected files or directories in Finder
+.SH SYNOPSIS
+.B reveal
+.RI [ -0 ]
+.RI [ -- ]
+.RI [ files... ]
+.SH DESCRIPTION
+.PP
+.B reveal
+is a utility for revealing selected files in MacOS Finder.
+.PP
+The options are as follows:
+.TP
+.BI -0
+Expect NUL ('\0') characters as separators on stdin.
+.TP
+.BI --
+End of options processing; all subsequent arguments are files.
+.PP
+File paths may be passed as arguments, or from standard input, but
+not both.  Either absolute and relative paths may be given.  Relative
+paths will be resolved from the current working directory.
+.PP
+The Finder will open as many folder windows as necessary to reveal all
+the files specified.  Files that do not exist will be silently ignored.
+.SH EXAMPLES
+Open Finder and select files passed as arguments:
+.PP
+.nf
+\fBreveal file1.txt file2.txt\fR
+.fi
+.PP
+Find and reveal potentially many files scattered about:
+.PP
+.nf
+\fBfind ~/Documents/*.txt -print0 | reveal -0\fR
+.fi
+.PP
+Reveal a file supplied from user input:
+.PP
+.nf
+\fBread FILENAME\fR
+\fBreveal -- "$FILENAME"\fR
+.fi
+.SH CONTRIBUTING
+.PP
+Visit the Github project: https://github.com/inopinatus/reveal
+.SH SEE ALSO
+.BR find (1),
+.BR open (1)
