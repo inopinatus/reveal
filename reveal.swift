@@ -11,7 +11,7 @@ func usage() {
 }
 
 func isInputAvailable() -> Bool {
-    var pollFD = pollfd(fd: 0, events: Int16(POLLIN), revents: 0)
+    var pollFD = pollfd(fd: STDIN_FILENO, events: Int16(POLLIN), revents: 0)
     return poll(&pollFD, 1, 0) > 0 && (pollFD.revents & Int16(POLLIN)) != 0
 }
 
