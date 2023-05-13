@@ -32,7 +32,7 @@ Now, you should be able to use `reveal` from anywhere in your terminal. By defau
 
 ```
 reveal [-0] [--] [files...]
-  -0: Expect NUL (`\0`) characters as separators on stdin
+  -0: Expect NUL (`\0`)-terminated filename strings on stdin
   --: End of options processing; all subsequent arguments are files
 ```
 

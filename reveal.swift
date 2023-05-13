@@ -16,7 +16,7 @@ func warnx(_ message: String, when: Bool = true) {
 
 func usage() {
     warn("usage: \(progname) [-0] [--] [files...]")
-    warn("  -0: Expect NUL ('\\0') characters as separators on stdin")
+    warn("  -0: Expect NUL ('\\0')-terminated filename strings on stdin")
     warn("  --: End of options processing; all subsequent arguments are files")
     exit(1)
 }
