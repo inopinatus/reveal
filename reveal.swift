@@ -1,6 +1,8 @@
 #!/usr/bin/swift
 
 import AppKit
+import Darwin
+import Foundation
 
 func usage() {
     let progname = URL(fileURLWithPath: CommandLine.arguments[0]).lastPathComponent
@@ -13,6 +15,26 @@ func usage() {
 func isInputAvailable() -> Bool {
     var pollFD = pollfd(fd: STDIN_FILENO, events: Int16(POLLIN), revents: 0)
     return poll(&pollFD, 1, 0) > 0 && (pollFD.revents & Int16(POLLIN)) != 0
+}
+
+struct InputIterator: IteratorProtocol {
+    let separator: UInt8
+    init(separator: UInt8) { self.separator = separator }
+
+    func next() -> String? {
+        var buffer = Data()
+        while true {
+            var char: UInt8 = 0
+            if read(STDIN_FILENO, &char, 1) < 1 {
+                return nil
+            } else if char == separator {
+                defer { buffer.removeAll() }
+                return String(data: buffer, encoding: .utf8)
+            } else {
+                buffer.append(char)
+            }
+        }
+    }
 }
 
 var nullSeparated = false
@@ -48,9 +70,11 @@ if fileArguments && nullSeparated {
 }
 // End of options processing
 
-let files = fileArguments ? AnySequence(args)
-          : nullSeparated ? AnySequence(FileHandle.standardInput.availableData.split(separator: 0).lazy.compactMap { String(data: Data($0), encoding: .utf8) })
-          : AnySequence { AnyIterator { readLine() } }
+let files = fileArguments
+            ? AnySequence(args)
+            : AnySequence {
+                InputIterator(separator: nullSeparated ? 0 : UInt8(ascii: "\n"))
+            }
 
 let urls = files.compactMap { URL(fileURLWithPath: $0).absoluteURL }
 
