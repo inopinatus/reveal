@@ -31,16 +31,19 @@ struct InputSplitter: IteratorProtocol {
     let separator: Separator
     var buffer = Data(capacity: Int(PATH_MAX))
 
+    mutating func result() -> String? {
+        defer { buffer.removeAll(keepingCapacity: true) }
+        return buffer.isEmpty ? nil : String(data: buffer, encoding: .utf8)
+    }
     mutating func next() -> String? {
         var char: UInt8 = 0
         while read(STDIN_FILENO, &char, 1) == 1 {
             if char == separator.rawValue {
-                defer { buffer.removeAll(keepingCapacity: true) }
-                return String(data: buffer, encoding: .utf8)
+                return result()
             }
             buffer.append(char)
         }
-        return nil
+        return result()
     }
 }
 
