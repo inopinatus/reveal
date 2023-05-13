@@ -1,14 +1,23 @@
 #!/usr/bin/swift
 
 import AppKit
-import Darwin
 import Foundation
 
+let progname = URL(fileURLWithPath: CommandLine.arguments[0]).lastPathComponent
+
+func warn(_ message: String, when: Bool = true) {
+    guard when else { return }
+    fputs("\(message)\n", stderr)
+}
+
+func warnx(_ message: String, when: Bool = true) {
+    warn("\(progname): \(message)", when: when)
+}
+
 func usage() {
-    let progname = URL(fileURLWithPath: CommandLine.arguments[0]).lastPathComponent
-    fputs("usage: \(progname) [-0] [--] [files...]\n", stderr)
-    fputs("  -0: Expect NUL ('\\0') characters as separators on stdin\n", stderr)
-    fputs("  --: End of options processing; all subsequent arguments are files\n", stderr)
+    warn("usage: \(progname) [-0] [--] [files...]")
+    warn("  -0: Expect NUL ('\\0') characters as separators on stdin")
+    warn("  --: End of options processing; all subsequent arguments are files")
     exit(1)
 }
 
@@ -17,30 +26,27 @@ func isInputAvailable() -> Bool {
     return poll(&pollFD, 1, 0) > 0 && (pollFD.revents & Int16(POLLIN)) != 0
 }
 
-struct InputIterator: IteratorProtocol {
-    let separator: UInt8
-    init(separator: UInt8) { self.separator = separator }
+struct InputSplitter: IteratorProtocol {
+    enum Separator: UInt8 { case NUL = 0, LF = 10 }
+    let separator: Separator
+    var buffer = Data(capacity: Int(PATH_MAX))
 
-    func next() -> String? {
-        var buffer = Data()
-        while true {
-            var char: UInt8 = 0
-            if read(STDIN_FILENO, &char, 1) < 1 {
-                return nil
-            } else if char == separator {
-                defer { buffer.removeAll() }
+    mutating func next() -> String? {
+        var char: UInt8 = 0
+        while read(STDIN_FILENO, &char, 1) == 1 {
+            if char == separator.rawValue {
+                defer { buffer.removeAll(keepingCapacity: true) }
                 return String(data: buffer, encoding: .utf8)
-            } else {
-                buffer.append(char)
             }
+            buffer.append(char)
         }
+        return nil
     }
 }
 
 var nullSeparated = false
 var fileArguments = false
 
-// Start of options processing
 var args = CommandLine.arguments.dropFirst()
 loop: while let arg = args.first, arg.starts(with: "-") {
     args = args.dropFirst()
@@ -52,34 +58,22 @@ loop: while let arg = args.first, arg.starts(with: "-") {
         fileArguments = true
         break loop
     default:
-        fputs("Invalid option: \(arg)\n", stderr)
+        warnx("invalid option: \(arg)")
         usage()
     }
 }
 
 if !(fileArguments || args.isEmpty) {
     fileArguments = true
-
-    if isInputAvailable() {
-        fputs("Ignoring input on stdin due to file arguments\n", stderr)
-    }
+    warnx("ignoring input on stdin due to file arguments", when: isInputAvailable())
 }
+warnx("ignoring -0 option due to file arguments", when: fileArguments && nullSeparated)
 
-if fileArguments && nullSeparated {
-    fputs("Ignoring -0 option due to file arguments\n", stderr)
-}
-// End of options processing
-
-let files = fileArguments
+let urls = (fileArguments
             ? AnySequence(args)
-            : AnySequence {
-                InputIterator(separator: nullSeparated ? 0 : UInt8(ascii: "\n"))
-            }
+            : AnySequence { InputSplitter(separator: nullSeparated ? .NUL : .LF) })
+              .compactMap { URL(fileURLWithPath: $0).absoluteURL }
 
-let urls = files.compactMap { URL(fileURLWithPath: $0).absoluteURL }
-
-if urls.isEmpty {
-    exit(0)
+if !urls.isEmpty {
+    NSWorkspace.shared.activateFileViewerSelecting(urls)
 }
-
-NSWorkspace.shared.activateFileViewerSelecting(urls)
