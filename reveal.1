@@ -21,12 +21,26 @@ Expect NUL ('\\0')-terminated filename strings on stdin.
 .BI --
 End of options processing; all subsequent arguments are files.
 .PP
-File paths may be passed as arguments, or from standard input, but
-not both.  Either absolute and relative paths may be given.  Relative
-paths will be resolved from the current working directory.
+Either absolute and relative paths may be supplied, and may be mixed
+in the same invocation.  Relative paths will be resolved from the
+current working directory.
 .PP
-The Finder will open as many folder windows as necessary to reveal all
-the files specified.  Files that do not exist will be silently ignored.
+Paths may be passed as arguments, or from standard input, but not
+both.  If supplied via arguments whilst stdin has data available,
+then stdin will be ignored and the arguments will be used, and a
+warning will be issued.  This warning is suppressed by the
+.BI --
+option.
+.PP
+Always supply the
+.BI --
+option when passing filename(s) via arguments from within another
+script/application.  Not only does it silence the warning, this
+prevents misbehaviour when a relative path begins with a hyphen.
+.PP
+You may expect the Finder to open as many folder windows as sufficient
+and necessary to reveal all files specified.  Files that do not
+exist are silently ignored.
 .SH EXAMPLES
 Open Finder and select files passed as arguments:
 .PP
@@ -34,10 +48,10 @@ Open Finder and select files passed as arguments:
 \fBreveal file1.txt file2.txt\fR
 .fi
 .PP
-Find and reveal potentially many files scattered about:
+Find and reveal files with a PDF extension in your Documents folder and subfolders:
 .PP
 .nf
-\fBfind ~/Documents/*.txt -print0 | reveal -0\fR
+\fBfind ~/Documents -iname '*.pdf' -print0 | reveal -0\fR
 .fi
 .PP
 Reveal a file supplied from user input:

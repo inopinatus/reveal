@@ -26,7 +26,7 @@ Compile and install:
 make install
 ```
 
-Now, you should be able to use `reveal` from anywhere in your terminal. By default, files will be installed under `/usr/local`. You can adjust locations using the variables in the Makefile, e.g. `make install PREFIX=/opt`.
+Now you should be able to use `reveal` from anywhere in your terminal.  By default, the binary and manpage will be installed under `/usr/local`.  You can adjust locations using the variables in the Makefile, e.g. `make install PREFIX=/opt`.
 
 ## Usage
 
@@ -36,9 +36,13 @@ reveal [-0] [--] [files...]
   --: End of options processing; all subsequent arguments are files
 ```
 
-File paths may be passed as arguments, or from standard input, but not both.  Either absolute and relative paths may be given.  Relative paths will be resolved from the current working directory.
+Either absolute and relative paths may be supplied, and may be mixed in the same invocation.  Relative paths will be resolved from the current working directory.
 
-Note that Finder will open as many folder windows as necessary to reveal all the files specified.  Files that do not exist will be silently ignored.
+Paths may be passed as arguments, or from standard input, but not both.  If supplied via arguments whilst stdin has data available, then stdin will be ignored and the arguments will be used, and a warning will be issued.  This warning is suppressed by the `--` option.
+
+Always supply the `--` option when passing filename(s) via arguments from within another script/application.  Not only does it silence the warning, this prevents misbehaviour when a relative path begins with a hyphen.
+
+You may expect the Finder to open as many folder windows as sufficient and necessary to reveal all files specified.  Files that do not exist are silently ignored.
 
 ## Examples
 
@@ -48,10 +52,10 @@ Note that Finder will open as many folder windows as necessary to reveal all the
 reveal file1.txt file2.txt
 ```
 
-2. Find and reveal potentially many files scattered about:
+2. Find and reveal files with a PDF extension in your Documents folder and subfolders:
 
 ```sh
-find ~/Documents/*.txt -print0 | reveal -0
+find ~/Documents -iname '*.pdf' -print0 | reveal -0
 ```
 
 3. Reveal a file supplied from user input:
@@ -65,7 +69,7 @@ reveal -- "$FILENAME"
 
 The open(1) utility has a `-R` option but it performs badly in some cases. Notably, when multiple files share a folder, only one of them will be selected.
 
-This utility was originally written for personal use, as a zsh-AppleScript hybrid that the excessively curious reader may find in `archive/reveal.zsh`.
+This utility was originally written for personal use as a zsh-AppleScript frankenscript that the excessively curious reader may find in `archive/reveal.zsh`.
 
 ## Contributing
 
