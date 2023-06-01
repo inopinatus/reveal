@@ -61,9 +61,11 @@ read -p 'file: ' FILENAME
 reveal -- "$FILENAME"
 ```
 
-## Motivation
+## Backstory
 
 The open(1) utility has a `-R` option but it performs badly in some cases. Notably, when multiple files share a folder, only one of them will be selected.
+
+This utility was originally written for personal use, as a zsh-AppleScript hybrid that the excessively curious reader may find in `archive/reveal.zsh`.
 
 ## Contributing
 
